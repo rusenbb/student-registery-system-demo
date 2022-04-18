@@ -7,6 +7,7 @@ int dis_by_id();
 int dis_by_year();
 int dis_by_fac();
 int del_rec();
+int sort();
 
 struct Node
 {
@@ -32,9 +33,9 @@ int main()
         if (choice == 1)
         {
             stack_marker++;
-            struct Node record;
-            record = *add_record();
-            record_stack[stack_marker] = &record;
+            struct Node *record;
+            record = add_record();
+            record_stack[stack_marker] = record;
         }
         else if (choice == 2)
         {
@@ -66,16 +67,16 @@ int main()
 struct Node *add_record()
 {
     /*Adds the pointer of records to the main stack.
-    Records are in the form of linked list:
+    Records are in the form of a linked list:
     student_id->n->a->m->e */
-    struct Node *head = NULL;
+    struct Node *head;
     struct Node *current_pt = NULL;
-    struct Node node;
-    head = &node;
-    current_pt = &node;
+    struct Node *node = (struct Node *)malloc(sizeof(struct Node *));
+    head = node;
+    current_pt = node;
 
     printf("\nEnter school number: ");
-    scanf("%9d\n", &(node.data));
+    scanf("%9d\n", &(node->data));
     int c;
     while ((c = getchar()) != '\n' && c != EOF)
     {
@@ -90,23 +91,41 @@ struct Node *add_record()
 
 int dis_by_id()
 {
-    struct Node *n;
+    sort();
 
-    printf("\nPrinting %d\n\n", stack_marker);
-    for (int i = 0; i <= stack_marker; i++)
+    struct Node *record_head;
+
+    for (int i = 0; i <= stack_marker; i++) // for each record till stack_marker
     {
-        n = record_stack[i];
-        printf("%d", n->data);
-        n = n->next;
+        printf("School ID: ");
+        record_head = record_stack[i];
+        printf("%d", record_head->data);
+        record_head = record_head->next;
 
-        while (n->next != NULL)
+        printf("\nName - Surname: ");
+        while (record_head->next != NULL)
         {
-            printf("%c", n->data);
-            n = n->next;
+            printf("%c", record_head->data);
+            record_head = record_head->next;
         }
-        printf("%c", n->data);
+        printf("%c\n\n", record_head->data); // last character has null ->next, so print explicitly
         printf("\n");
     }
+}
+
+int dis_by_year()
+{
+    sort();
+}
+
+int dis_by_fac()
+{
+    sort();
+}
+
+int del_rec()
+{
+    sort();
 }
 
 int sort()
