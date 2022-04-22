@@ -35,28 +35,32 @@ int main()
         // e.g. if last choice already made program sort by id no need to repeat
         print_menu();
         scanf("%1d", &choice);
+        printf("\n----v----V----v----\n\n");
 
         if (choice == 1)
         {
             // add record, increment record count
             struct Node *record = (struct Node *)malloc(sizeof(struct Node));
             record = add_record();
-            record_stack[stack_marker] = record;
+            record_stack[stack_marker] = record; // push to stack
             stack_marker++;
             last_choice = 1;
         }
         else if (choice == 2)
         {
+            printf("Displaying by faculty id: \n\n");
             dis_by_id(last_choice);
             last_choice = 2;
         }
         else if (choice == 3)
         {
+            printf("Displaying by faculty year: \n\n");
             dis_by_year(last_choice);
             last_choice = 3;
         }
         else if (choice == 4)
         {
+            printf("Displaying by faculty code: \n\n");
             dis_by_fac(last_choice);
             last_choice = 4;
         }
@@ -67,16 +71,16 @@ int main()
             int index;
             printf("Write the ID of the student in order to remove it from system: ");
             scanf("%d", &student_id);
-            index = bin_search(student_id);
-            if (index == -1)
+            index = bin_search(student_id); // returns the index of corresponding id in the stack
+            if (index != -1)                // if binary search is successful
             {
-                printf("ID Not Found.\n Coudln't delete.\n");
+                del_rec(index); // deletes the record and rearranges the stack
+                printf("Deleted student that corresponds to ID: %d\n", student_id);
+                printf("Currently there are %d students on the system.\n", stack_marker);
                 last_choice = 5;
                 continue;
             }
-            del_rec(index); // deletes the record and rearranges the stack
-            printf("Deleted student that corresponds to ID: %d\n", student_id);
-            printf("Currently there are %d students on the system.\n", stack_marker);
+            printf("ID Not Found.\nCould not delete.\n");
             last_choice = 5;
         }
         else if (choice == 6)
@@ -102,7 +106,7 @@ struct Node *add_record()
     head = node;
     current_pt = node;
 
-    printf("\nEnter school number: ");
+    printf("Enter school number: ");
     scanf("%9d", &(node->data));
     getchar();
     printf("\nEnter  Name Surname: ");
@@ -121,9 +125,9 @@ struct Node *add_record()
 
 void dis_by_id(int last_choice)
 {
-    if (!(last_choice == 2))
+    if (!(last_choice == 2)) // for protecting computation resource
     {
-        sort(1, 4);
+        sort(1, 4); // e.g. 987654321 use 98765<<4321>> -> 4321
     }
 
     display_stack();
@@ -131,9 +135,9 @@ void dis_by_id(int last_choice)
 
 void dis_by_year(int last_choice)
 {
-    if (!(last_choice == 3))
+    if (!(last_choice == 3)) // for protecting computation resource
     {
-        sort(5, 6);
+        sort(5, 6); // e.g. 987654321 use 987<<65>>4321 -> 65
     }
 
     display_stack();
@@ -141,9 +145,9 @@ void dis_by_year(int last_choice)
 
 void dis_by_fac(int last_choice)
 {
-    if (!(last_choice == 3))
+    if (!(last_choice == 3)) // for protecting computation resource
     {
-        sort(7, 9);
+        sort(7, 9); // e.g. 987654321 use <<987>>654321 -> 987
     }
 
     display_stack();
@@ -155,6 +159,11 @@ int bin_search(int wanted_student_id)
     int low = 0;
     int high = stack_marker;
     int mid = (low + high) / 2;
+
+    if (wanted_student_id > record_stack[high - 1]->data || wanted_student_id < record_stack[low]->data)
+    {
+        return -1;
+    }
 
     while (true)
     { // 1, 2, 3, 4, 5, 6,7
@@ -198,7 +207,8 @@ void sort(int start_id, int end_id)
     crop_size = (int)pow((double)10, (double)(start_id - 1));                   // used with division /
     compare_part_len = (int)pow((double)10, (double)((end_id - start_id) + 1)); // used with remainder %
 
-    for (int i = 1; i < stack_marker; i++)
+    // this part is insertion sort algorithm
+    for (int i = 1; i < stack_marker; i++) // for each value in the stack
     {
         int value_to_insert;
         int compared_value;
@@ -207,79 +217,81 @@ void sort(int start_id, int end_id)
 
         j = i;
         value_to_insert = record_stack[i]->data;
-        value_to_insert = (value_to_insert / crop_size) % compare_part_len;
+        value_to_insert = (value_to_insert / crop_size) % compare_part_len; // wanted part is got from the id
         value_to_insert_pt = record_stack[i];
-
+        // compare each element with the ones that has lower index
         while (j > 0 && (compared_value = ((record_stack[j - 1]->data) / crop_size) % compare_part_len) > value_to_insert)
         {
-            record_stack[j] = record_stack[j - 1];
-            j--;
+            record_stack[j] = record_stack[j - 1]; // if compared value is bigger shift it to the upper
+            j--;                                   // proceed to compare with 'lower' indexed values
         }
-        record_stack[j] = value_to_insert_pt;
-    }
-}
-
-void display_stack()
-{
-    struct Node *record_head;
-
-    for (int i = 0; i < stack_marker; i++) // for each record till stack_marker
-    {
-        printf("School ID: ");
-        record_head = record_stack[i];
-        printf("%d", record_head->data);
-        record_head = record_head->next;
-
-        printf("\n");
-        printf("Name Surname: ");
-        while (record_head != NULL)
-        {
-            printf("%c", record_head->data);
-            record_head = record_head->next;
-        }
-        printf("\n");
+        // got j which is the index where our value_to_insert is no longer smaller than element at that-1 (j-1 th) index
+        record_stack[j] = value_to_insert_pt; // insert our value to jth index and proceed for stack_marker-1 times
     }
 }
 
 void del_rec(int index)
 {
     struct Node *head_pt = record_stack[index];
-    struct Node *next_pt = record_stack[index]->next;
+    struct Node *next_pt;
 
-    while (next_pt != NULL)
+    // remove from memory
+    while (head_pt != NULL)
     {
+        next_pt = head_pt->next;
         free(head_pt);
         head_pt = next_pt;
-        next_pt = next_pt->next;
     }
 
-    free(head_pt);
-
-    stack_marker--; // if succesfuly deleted decrement stack length marker
-
-    // rearrange linearly
+    // rearrange stack linearly
     for (int i = index; i < stack_marker; i++)
     {
         record_stack[i] = record_stack[i + 1];
     }
-    if (index != stack_marker) // if removed element is not the last element
-    {                          // remove the last element (index = stack_marker) manually
-        head_pt = record_stack[stack_marker];
-        next_pt = record_stack[stack_marker]->next;
-        while (next_pt != NULL)
+    if (index != (stack_marker - 1)) // if removed element is not the last element
+    {                                // remove the last element manually
+        head_pt = record_stack[stack_marker - 1];
+
+        while (head_pt != NULL)
         {
+            next_pt = head_pt->next;
             free(head_pt);
             head_pt = next_pt;
-            next_pt = next_pt->next;
         }
-        free(head_pt);
+    }
+
+    stack_marker--; // if succesfuly deleted decrement stack length marker
+}
+
+void display_stack()
+{
+    struct Node *record_head;
+    if (stack_marker == 0)
+        printf("No student registered\n\n");
+
+    for (int i = 0; i < stack_marker; i++) // for each record till stack_marker
+    {
+        printf("School ID: ");
+        record_head = record_stack[i];
+        printf("%d", record_head->data); // printf id
+        record_head = record_head->next;
+
+        printf("\n");
+        printf("Name Surname: ");
+        while (record_head != NULL)
+        {
+            printf("%c", record_head->data); // printf data
+            record_head = record_head->next;
+        }
+        printf("\n");
+        printf("\n");
     }
 }
 
 void print_menu()
 {
     // prints the main menu
-    printf("<============MENU===========>");
+    printf("\n<============MENU===========>\n");
     printf("1-Enter record with school number\n");
     printf("2-Display school numbers sorted by ID\n");
     printf("3-Display school numbers sorted by year\n");
